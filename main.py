@@ -2,68 +2,73 @@ import typing
 import random
 
 def info() -> typing.Dict:
-    print("INFO")
-
     return {
         "apiversion": "1",
-        "author": "snaaaak",
-        "color": "#888888",
+        "author": "ekans",
+        "color": "#F1CFCC",
         "head": "rbc-bowler",
         "tail": "rbc-necktie",
     }
 
 def start(game_state: typing.Dict):
-    print("GAME START")
+    pass
 
 def end(game_state: typing.Dict):
-    print("GAME OVER\n")
+    pass
 
-  
+def is_collision(point, body):
+    # Check if a point collides with the snake's body
+    return point in body
+
+def is_out_of_bounds(point, height, width):
+    # Check if a point is out of bounds
+    return point["x"] < 0 or point["x"] >= width or point["y"] < 0 or point["y"] >= height
+
+def find_safe_moves(my_head, my_body, height, width, other_snakes):
+    safe_moves = []
+
+    # Define all possible moves
+    moves = {
+        "up": {"x": my_head["x"], "y": my_head["y"] + 1},
+        "down": {"x": my_head["x"], "y": my_head["y"] - 1},
+        "left": {"x": my_head["x"] - 1, "y": my_head["y"]},
+        "right": {"x": my_head["x"] + 1, "y": my_head["y"]}
+    }
+
+    # Check if each move is safe
+    for move, point in moves.items():
+        if (
+            not is_collision(point, my_body) and
+            not is_out_of_bounds(point, height, width)
+        ):
+            # Check for collisions with other snakes
+            is_safe = True
+            for snake in other_snakes:
+                if is_collision(point, snake):
+                    is_safe = False
+                    break
+            if is_safe:
+                safe_moves.append(move)
+
+    return safe_moves
+
 def move(game_state: typing.Dict) -> typing.Dict:
+    my_head = game_state["you"]["body"][0]
+    my_body = game_state["you"]["body"]
+    height = game_state["board"]["height"]
+    width = game_state["board"]["width"]
+    other_snakes = [snake["body"] for snake in game_state["board"]["snakes"] if snake["id"] != game_state["you"]["id"]]
 
-  is_move_safe_dict = {
-    "up": True, 
-    "down": True, 
-    "left": True, 
-    "right": True
-  }
-  
-  my_head = game_state["you"]["body"][0]
-  my_neck = game_state["you"]["body"][1]
-  
-  if my_neck["x"] < my_head["x"]:
-      is_move_safe_dict["left"] = False
-  elif my_neck["x"] > my_head["x"]:
-      is_move_safe_dict["right"] = False
-  elif my_neck["y"] < my_head["y"]:
-      is_move_safe_dict["down"] = False
-  elif my_neck["y"] > my_head["y"]:
-      is_move_safe_dict["up"] = False
+    safe_moves = find_safe_moves(my_head, my_body, height, width, other_snakes)
 
-  height = game_state["board"]["height"]
-  width = game_state["board"]["width"]
+    if not safe_moves:
+        # If there are no safe moves, just select a random one
+        safe_moves = ["up", "down", "left", "right"]
 
+    # Choose a random safe move
+    chosen_move = random.choice(safe_moves)
 
-  if my_head["y"] >= height - 1:
-    is_move_safe_dict["up"] = False
-    
-  if my_head["y"] == 0:
-    is_move_safe_dict["down"] = False
-    
-  if my_head["x"] == 0:
-    is_move_safe_dict["left"] = False
-    
-  if my_head["x"] >= width - 1:
-     is_move_safe_dict["right"] = False
-
-  safe_moves = []
-  for move in is_move_safe_dict:
-    if is_move_safe_dict[move]:
-      safe_moves.append(move)
-
-  
-  
-  return {"move": safe_moves[random.randint(0, len(safe_moves) - 1)]}
+    return {"move": chosen_move}
 
 if __name__ == "__main__":
     from server import run_server
@@ -71,7 +76,6 @@ if __name__ == "__main__":
     run_server({
         "info": info, 
         "start": start, 
-         "move": move, 
+        "move": move, 
         "end": end
     })
-
