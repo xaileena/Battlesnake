@@ -24,8 +24,9 @@ def is_out_of_bounds(point, height, width):
     # Check if a point is out of bounds
     return point["x"] < 0 or point["x"] >= width or point["y"] < 0 or point["y"] >= height
 
-def find_safe_moves(my_head, my_body, height, width, other_snakes):
+def find_safe_moves(my_head, my_body, height, width, other_snakes, food):
     safe_moves = []
+    my_length = len(my_body)
 
     # Define all possible moves
     moves = {
@@ -45,9 +46,17 @@ def find_safe_moves(my_head, my_body, height, width, other_snakes):
             is_safe = True
             for snake in other_snakes:
                 if is_collision(point, snake):
-                    is_safe = False
-                    break
-            if is_safe:
+                    if point == snake[0]:
+                        if len(snake) > my_length:
+                            is_safe = True
+                            break
+                        else:
+                            is_safe = False
+                    else:
+                        is_safe = False
+            if is_safe and point in food:
+                safe_moves.insert(0, move)
+            elif is_safe:
                 safe_moves.append(move)
 
     return safe_moves
@@ -59,7 +68,9 @@ def move(game_state: typing.Dict) -> typing.Dict:
     width = game_state["board"]["width"]
     other_snakes = [snake["body"] for snake in game_state["board"]["snakes"] if snake["id"] != game_state["you"]["id"]]
 
-    safe_moves = find_safe_moves(my_head, my_body, height, width, other_snakes)
+    food = game_state["board"]["food"]
+
+    safe_moves = find_safe_moves(my_head, my_body, height, width, other_snakes, food)
 
     if not safe_moves:
         # If there are no safe moves, just select a random one
