@@ -5,7 +5,7 @@ def info() -> typing.Dict:
     return {
         "apiversion": "1",
         "author": "ekans",
-        "color": "#F1CFCC",
+        "color": "#000000",
         "head": "rbc-bowler",
         "tail": "rbc-necktie",
     }
