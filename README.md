@@ -28,3 +28,11 @@ The last Battlesnake remaining is the winner
 -    Allocate and deallocate any game specific resources (optional)
 
 More info : [Battlesnake](https://docs.battlesnake.com/)
+
+
+## How to run using Replit
+- On replit, import this repo
+- Run main.py on replit and copy the URL in the webview page
+- Create an account on https://play.battlesnake.com
+- Import this battlesnake by clicking on "Create a battlesnake" and pasting the URL
+- Create a new game to test the snake!
