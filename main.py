@@ -30,106 +30,122 @@ survival_min = 50
 my_id = ''
 INITIAL_FEEDING = 3
 
+
 def info() -> typing.Dict:
-    return {
-        "apiversion": "1",
-        "author": "ekans",
-        "color": "#000000",
-        "head": "rbc-bowler",
-        "tail": "rbc-necktie",
-    }
+  return {
+      "apiversion": "1",
+      "author": "ekans",
+      "color": "#000000",
+      "head": "rbc-bowler",
+      "tail": "rbc-necktie",
+  }
 
 def start(game_state: typing.Dict):
-    print('STARTING NEW GAME.')
+  print('STARTING NEW GAME.')
 
 def end(game_state: typing.Dict):
-    pass
+  pass
 
 def is_collision(point, body):
-    # Check if a point collides with the snake's body
-    return point in body
+  # Check if a point collides with the snake's body
+  return point in body
+
 
 def is_out_of_bounds(point, height, width):
-    # Check if a point is out of bounds
-    return point["x"] < 0 or point["x"] >= width or point["y"] < 0 or point["y"] >= height
+  # Check if a point is out of bounds
+  return point["x"] < 0 or point["x"] >= width or point["y"] < 0 or point[
+      "y"] >= height
 
 def find_safe_moves(my_head, my_body, height, width, other_snakes, food):
-    safe_moves = []
-    my_length = len(my_body)
+  safe_moves = []
+  my_length = len(my_body)
 
-    # Define all possible moves
-    moves = {
-        "up": {"x": my_head["x"], "y": my_head["y"] + 1},
-        "down": {"x": my_head["x"], "y": my_head["y"] - 1},
-        "left": {"x": my_head["x"] - 1, "y": my_head["y"]},
-        "right": {"x": my_head["x"] + 1, "y": my_head["y"]}
-    }
+  # Define all possible moves
+  moves = {
+      "up": {
+          "x": my_head["x"],
+          "y": my_head["y"] + 1
+      },
+      "down": {
+          "x": my_head["x"],
+          "y": my_head["y"] - 1
+      },
+      "left": {
+          "x": my_head["x"] - 1,
+          "y": my_head["y"]
+      },
+      "right": {
+          "x": my_head["x"] + 1,
+          "y": my_head["y"]
+      }
+  }
 
-    # Check if each move is safe
-    for move, point in moves.items():
-        if (
-            not is_collision(point, my_body) and
-            not is_out_of_bounds(point, height, width)
-        ):
-            # Check for collisions with other snakes
-            is_safe = True
-            for snake in other_snakes:
-                if is_collision(point, snake):
-                    if point == snake[0]:
-                        if len(snake) > my_length:
-                            is_safe = True
-                            break
-                        else:
-                            is_safe = False
-                    else:
-                        is_safe = False
-            if is_safe and point in food:
-                safe_moves.insert(0, move)
-            elif is_safe:
-                safe_moves.append(move)
+  # Check if each move is safe
+  for move, point in moves.items():
+    if (not is_collision(point, my_body)
+        and not is_out_of_bounds(point, height, width)):
+      # Check for collisions with other snakes
+      is_safe = True
+      for snake in other_snakes:
+        if is_collision(point, snake):
+          if point == snake[0]:
+            if len(snake) > my_length:
+              is_safe = True
+              break
+            else:
+              is_safe = False
+          else:
+            is_safe = False
+      if is_safe and point in food:
+        safe_moves.insert(0, move)
+      elif is_safe:
+        safe_moves.append(move)
 
-    return safe_moves
+  return safe_moves
 
 def move(game_state: typing.Dict) -> typing.Dict:
-    global direction, directions, board_height, board_width, game_id, health, turn, my_id
-    start_time = time.time()
+  global direction, directions, board_height, board_width, game_id, health, turn, my_id
+  start_time = time.time()
+  print(game_state)
+  board_width = game_state['board']['width']
+  board_height = game_state['board']['height']
+  my_id = game_state['you']['id']
+  health = game_state['you']['health']
+  turn = game_state['turn']
+  taunt = 'Nice'
 
-    board_width = game_state['board']['width']
-    board_height = game_state['board']['height']
-    my_id = game_state['you']['id']
-    health = game_state['you']['health']
-    turn = game_state['turn']
-    taunt = 'Nice'
+  survival_min = set_health_min(game_state)
 
-    survival_min = set_health_min(game_state)
+  if health < survival_min:
+    taunt = 'Foooooooood'
+    direction = hungry(game_state)
 
-    if health < survival_min:
-        taunt = 'Its Nice.'
-        direction = hungry(game_state)
+  elif not biggest(game_state):
+    taunt = 'ehhh'
+    print(game_state)
+    direction = hungry(game_state)
 
-    elif biggest(game_state):
-        taunt = 'Nice'
-        direction = kill_time(game_state)
-    
-    else :
-        taunt = 'Not nice'
-        direction = hungry(game_state)
+  else:
+    taunt = 'hehe'
+    direction = kill_time(game_state)
 
-    if status:
-        print('REMAINING HEALTH IS ' + str(health) + ' ON TURN ' + str(turn) + '.')
-        print('SENDING MOVE: ' + str(directions[direction]))
-    end_time = time.time()
-    print('Time for move was ' + str((end_time - start_time) * 1000.0) + 'ms')
+  if status:
+    print('REMAINING HEALTH IS ' + str(health) + ' ON TURN ' + str(turn) + '.')
+    print('SENDING MOVE: ' + str(directions[direction]))
+  end_time = time.time()
+  print('Time for move was ' + str((end_time - start_time) * 1000.0) + 'ms')
 
-    return {'move': directions[direction], 'taunt': taunt}
+  return {'move': directions[direction], 'taunt': taunt}
+
 
 # seek closest food
 def hungry(game_state: typing.Dict):
-  if status: print('HMMMMMMMM')
+  if status: print('MMHHHMMMMMMMM')
   grid = build_map(game_state)
   close_food = closest_food(grid, game_state)
   move = astar(game_state, grid, close_food, 'food')
   return move
+
 
 # follow own tail to kill time
 def kill_time(game_state: typing.Dict):
@@ -138,6 +154,7 @@ def kill_time(game_state: typing.Dict):
   tail = get_tail(game_state)
   move = astar(game_state, grid, tail, 'my_tail')
   return move
+
 
 def build_map(game_state: typing.Dict):
   global my_id, board_height, board_width
@@ -155,7 +172,7 @@ def build_map(game_state: typing.Dict):
   # fill in snake locations
   for snake in game_state['board']['snakes']:
     for segment in snake['body']:
-      
+
       # get each segment from data {snakes, data, body, data}
       grid[segment['x']][segment['y']] = SNAKE_BODY
 
@@ -165,7 +182,7 @@ def build_map(game_state: typing.Dict):
             str(snake['body'][-1]['y']))
       print('-2 body seg: ' + str(snake['body'][-2]['x']) + ',' +
             str(snake['body'][-2]['y']))
-      
+
     #if turn > 3:
     if snake['body'][-1] != snake['body'][-2]:
       tempX = snake['body'][-1]['x']
@@ -201,12 +218,13 @@ def build_map(game_state: typing.Dict):
 
   return grid
 
+
 # astar search, returns move that moves closest to destination
 def astar(game_state: typing.Dict, grid, destination, mode):
   global debug
   if debug:
     print("map:")
-    print_map(game_state)
+    print_map(grid)
   if status: print('MAP BUILT! CALCULATING PATH...')
   search_scores = build_astar_grid(game_state, grid)
   open_set = []
@@ -224,8 +242,7 @@ def astar(game_state: typing.Dict, grid, destination, mode):
     lowest_f = 9999
     # find cell with lowest f score
     for cell in open_set:
-      if search_scores[cell[0]][cell[
-          1]].f < lowest_f:
+      if search_scores[cell[0]][cell[1]].f < lowest_f:
         lowest_f = search_scores[cell[0]][cell[1]].f
         lowest_cell = cell
     # found path to destination
@@ -300,7 +317,8 @@ def astar(game_state: typing.Dict, grid, destination, mode):
       move = astar(game_state, grid, tail, 'my_tail')
 
     return best_move(move, game_state, grid)
-  
+
+
 # return direction from a to b
 def calculate_direction(a, b, grid, game_state: typing.Dict):
   if status: print('CALCULATING NEXT MOVE...')
@@ -326,6 +344,7 @@ def calculate_direction(a, b, grid, game_state: typing.Dict):
       direction = 0
   return direction
 
+
 def best_move(reccommended_move, game_state: typing.Dict, grid):
   global board_height, board_width
   if status: print('CHECKING FOR BEST MOVE...')
@@ -346,7 +365,8 @@ def best_move(reccommended_move, game_state: typing.Dict, grid):
   current = current_location(game_state)
   best_move = []
   # check UP move
-  if current[1] + 1 < board_height and grid[current[0]][current[1] + 1] <= DANGER:
+  if current[1] + 1 < board_height and grid[current[0]][current[1] +
+                                                        1] <= DANGER:
     if debug: print('move UP is viable')
     reg_moves.append(UP)
   # check DOWN move
@@ -474,7 +494,8 @@ def best_move(reccommended_move, game_state: typing.Dict, grid):
       print('DEAD END, NO VALID MOVE REMAINING! (bottom)')
       print('GAME OVER')
     return reccommended_move
-  
+
+
 # calculates number of cells accessable given a move
 def look_ahead(move, grid, game_state):
   area = 0
@@ -538,10 +559,10 @@ def look_ahead(move, grid, game_state):
         # if move on board
         if neighbor_right[0] < board_width:
           # if move is valid
-          if grid[neighbor_right[0]][
-              neighbor_right[1]] <= DANGER:
+          if grid[neighbor_right[0]][neighbor_right[1]] <= DANGER:
             move_queue.append(neighbor_right)
   return area
+
 
 # return if the area enclosed by the given move includes own tail
 # function copied from look_ahead. May contain erroneous comments
@@ -618,6 +639,7 @@ def move_contains_tail(move, grid, game_state):
     if debug: print('move DOESNT contain tail')
   return contains_tail
 
+
 def valid_move(d, grid, game_state):
   global board_height, board_width
   current = current_location(game_state)
@@ -671,17 +693,21 @@ def valid_move(d, grid, game_state):
     print('valid_move FAILED! direction IS NOT ONE OF FOUR POSSIBLE MOVES!')
   return True
 
+
 # return manhattan distance between a and b
 def get_distance(a, b):
   return (abs(a[0] - b[0]) + abs(a[1] - b[1]))
+
 
 # convert object yx to list yx
 def get_coords(o):
   return (o['x'], o['y'])
 
+
 # return x,y coords of current head location
 def current_location(data):
   return (data['you']['body'][0]['x'], data['you']['body'][0]['y'])
+
 
 # return coords of closest food to head, using grid
 def closest_food(grid, data):
@@ -698,6 +724,7 @@ def closest_food(grid, data):
           close_distance = distance
   return close_food
 
+
 # return coords to own tail
 def get_tail(data):
   body = data['you']['body']
@@ -705,6 +732,7 @@ def get_tail(data):
   for segment in body:
     tail = get_coords(segment)
   return tail
+
 
 # return grid of empty Cells for astar search data
 def build_astar_grid(data, grid):
@@ -715,6 +743,7 @@ def build_astar_grid(data, grid):
     for j in range(h):
       astar_grid[i][j].state = grid[i][j]
   return astar_grid
+
 
 # the cell class for storing a* search information
 class Cell:
@@ -738,6 +767,7 @@ class Cell:
     if self.y > 0:
       self.neighbors.append([self.x, self.y - 1])
 
+
 # print whole map
 def print_map(grid):
   #global board_height, board_width
@@ -749,6 +779,7 @@ def print_map(grid):
       line += str(grid[j][i])
     print(line)
 
+
 # will print f scores of the astar grid of cell data
 def print_f_scores(astar_grid):
   w = len(astar_grid)
@@ -758,6 +789,7 @@ def print_f_scores(astar_grid):
     for j in range(w):
       line += str(astar_grid[j][i].f)
     print(line)
+
 
 # returns if you are not the biggest snake
 def biggest(data):
@@ -771,6 +803,7 @@ def biggest(data):
     return False
   return True
 
+
 # will return the minimum health required to keep alive
 def set_health_min(data):
   health_board = max(board_height, board_width) * 2
@@ -779,12 +812,8 @@ def set_health_min(data):
     return health_length
   return health_board
 
-if __name__ == "__main__":
-    from server import run_server
 
-    run_server({
-        "info": info, 
-        "start": start, 
-        "move": move, 
-        "end": end
-    })
+if __name__ == "__main__":
+  from server import run_server
+
+  run_server({"info": info, "start": start, "move": move, "end": end})
